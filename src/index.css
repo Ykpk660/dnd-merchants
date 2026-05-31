@@ -1,0 +1,112 @@
+:root {
+  --bg: #1a1208;
+  --bg2: #221a0e;
+  --bg3: #2e2010;
+  --text: #d4b896;
+  --text-dim: #8a6e50;
+  --accent: #c9922a;
+  --accent2: #8b4513;
+  --border: #4a3520;
+  --danger: #8b2020;
+  --shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  color: var(--accent);
+  font-weight: normal;
+}
+
+input, textarea {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 15px;
+  width: 100%;
+  outline: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--accent);
+}
+textarea { resize: vertical; }
+
+button { cursor: pointer; font-family: inherit; border: none; }
+
+.btn-primary {
+  background: var(--accent2);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--accent); color: #1a1208; }
+
+.btn-secondary {
+  background: var(--bg3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+.btn-secondary:hover { border-color: var(--accent); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #f0c0c0;
+  border: 1px solid #a03030;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.btn-danger:hover { background: #a03030; }
+
+.btn-back {
+  background: none;
+  color: var(--text-dim);
+  border: none;
+  font-size: 14px;
+  padding: 6px 0;
+}
+.btn-back:hover { color: var(--text); }
+
+.btn-remove {
+  background: none;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.empty-hint {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 24px;
+  font-style: italic;
+}
