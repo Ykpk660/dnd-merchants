@@ -9,6 +9,9 @@ import './App.css'
 export default function App() {
   const store = useStore()
   const [screen, setScreen] = useState('list')
+
+  if (store.loading) return <div className="app-loading">Загрузка...</div>
+  if (store.error) return <div className="app-loading error">Ошибка подключения к БД: {store.error}</div>
   const [selectedMerchantId, setSelectedMerchantId] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null)
   const [editingMerchantId, setEditingMerchantId] = useState(null)

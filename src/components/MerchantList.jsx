@@ -30,7 +30,7 @@ export default function MerchantList({
     setCollapsed(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const ungrouped = merchants.filter(m => !m.groupId)
+  const ungrouped = merchants.filter(m => !m.groupId || !groups.find(g => g.id === Number(m.groupId)))
 
   return (
     <div className="screen list-screen">
@@ -41,7 +41,7 @@ export default function MerchantList({
 
       {/* Группы */}
       {groups.map(g => {
-        const members = merchants.filter(m => m.groupId === g.id)
+        const members = merchants.filter(m => Number(m.groupId) === g.id)
         const isCollapsed = collapsed[g.id]
         return (
           <div key={g.id} className="group-block">

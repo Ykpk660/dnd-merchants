@@ -1,5 +1,16 @@
 .app { min-height: 100vh; }
 
+.app-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 16px;
+  font-style: italic;
+}
+.app-loading.error { color: #e08080; }
+
 /* ── Screen base ── */
 .screen { padding: 20px; min-height: 100vh; }
 
@@ -173,9 +184,11 @@
 .merchant-photo-wrap { flex-shrink: 0; }
 
 .merchant-photo {
-  width: 200px;
-  height: 280px;
-  object-fit: cover;
+  max-width: 240px;
+  max-height: 360px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border: 2px solid var(--border-light);
   border-radius: 3px;
   display: block;

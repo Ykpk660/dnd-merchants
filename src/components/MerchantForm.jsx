@@ -38,7 +38,7 @@ export default function MerchantForm({ merchant, groups, onSave, onDelete, onCan
       name: name.trim(),
       race: race.trim(),
       photo,
-      groupId: groupId || null,
+      groupId: groupId ? Number(groupId) : null,
       items
     })
   }

@@ -1,50 +1,89 @@
 import { useState, useEffect } from 'react'
-
-function load(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : fallback
-  } catch {
-    return fallback
-  }
-}
+import { supabase } from './supabase'
 
 export function useStore() {
-  const [groups, setGroups] = useState(() => load('dnd_groups', []))
-  const [merchants, setMerchants] = useState(() => load('dnd_merchants', []))
+  const [groups, setGroups] = useState([])
+  const [merchants, setMerchants] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => { localStorage.setItem('dnd_groups', JSON.stringify(groups)) }, [groups])
-  useEffect(() => { localStorage.setItem('dnd_merchants', JSON.stringify(merchants)) }, [merchants])
+  // Загрузка данных при старте
+  useEffect(() => {
+    async function fetchAll() {
+      setLoading(true)
+      try {
+        const [{ data: g, error: ge }, { data: m, error: me }] = await Promise.all([
+          supabase.from('groups').select('*').order('created_at'),
+          supabase.from('merchants').select('*').order('created_at'),
+        ])
+        if (ge) throw ge
+        if (me) throw me
+        setGroups(g || [])
+        setMerchants((m || []).map(row => ({
+          ...row,
+          groupId: row.group_id,
+          items: row.items || [],
+        })))
+      } catch (e) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAll()
+  }, [])
 
-  function createGroup(name) {
-    const g = { id: Date.now(), name }
-    setGroups(prev => [...prev, g])
-    return g
+  async function createGroup(name) {
+    const { data, error } = await supabase.from('groups').insert({ name }).select().single()
+    if (error) { alert('Ошибка: ' + error.message); return }
+    setGroups(prev => [...prev, data])
+    return data
   }
 
-  function renameGroup(id, name) {
+  async function renameGroup(id, name) {
+    const { error } = await supabase.from('groups').update({ name }).eq('id', id)
+    if (error) { alert('Ошибка: ' + error.message); return }
     setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g))
   }
 
-  function deleteGroup(id) {
+  async function deleteGroup(id) {
+    const { error } = await supabase.from('groups').delete().eq('id', id)
+    if (error) { alert('Ошибка: ' + error.message); return }
     setGroups(prev => prev.filter(g => g.id !== id))
     setMerchants(prev => prev.map(m => m.groupId === id ? { ...m, groupId: null } : m))
   }
 
-  function saveMerchant(data, existingId) {
+  async function saveMerchant(data, existingId) {
+    const row = {
+      name: data.name,
+      race: data.race,
+      photo: data.photo,
+      group_id: data.groupId || null,
+      items: data.items || [],
+    }
+
     if (existingId) {
-      setMerchants(prev => prev.map(m => m.id === existingId ? { ...data, id: existingId } : m))
+      const { error } = await supabase.from('merchants').update(row).eq('id', existingId)
+      if (error) { alert('Ошибка: ' + error.message); return existingId }
+      setMerchants(prev => prev.map(m => m.id === existingId
+        ? { ...m, ...data, id: existingId, groupId: data.groupId || null }
+        : m
+      ))
       return existingId
     } else {
-      const id = Date.now()
-      setMerchants(prev => [...prev, { ...data, id }])
-      return id
+      const { data: created, error } = await supabase.from('merchants').insert(row).select().single()
+      if (error) { alert('Ошибка: ' + error.message); return null }
+      const merchant = { ...created, groupId: created.group_id, items: created.items || [] }
+      setMerchants(prev => [...prev, merchant])
+      return created.id
     }
   }
 
-  function deleteMerchant(id) {
+  async function deleteMerchant(id) {
+    const { error } = await supabase.from('merchants').delete().eq('id', id)
+    if (error) { alert('Ошибка: ' + error.message); return }
     setMerchants(prev => prev.filter(m => m.id !== id))
   }
 
-  return { groups, merchants, createGroup, renameGroup, deleteGroup, saveMerchant, deleteMerchant }
+  return { groups, merchants, loading, error, createGroup, renameGroup, deleteGroup, saveMerchant, deleteMerchant }
 }
