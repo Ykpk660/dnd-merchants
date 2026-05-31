@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useStore } from './useStore'
 import MerchantList from './components/MerchantList'
 import MerchantView from './components/MerchantView'
 import ItemCard from './components/ItemCard'
@@ -6,14 +7,17 @@ import MerchantForm from './components/MerchantForm'
 import './App.css'
 
 export default function App() {
-  const [merchants, setMerchants] = useState([])
+  const store = useStore()
   const [screen, setScreen] = useState('list')
-  const [selectedMerchant, setSelectedMerchant] = useState(null)
+  const [selectedMerchantId, setSelectedMerchantId] = useState(null)
   const [selectedItem, setSelectedItem] = useState(null)
-  const [editingMerchant, setEditingMerchant] = useState(null)
+  const [editingMerchantId, setEditingMerchantId] = useState(null)
+
+  const selectedMerchant = store.merchants.find(m => m.id === selectedMerchantId)
+  const editingMerchant = store.merchants.find(m => m.id === editingMerchantId) || null
 
   function openMerchant(merchant) {
-    setSelectedMerchant(merchant)
+    setSelectedMerchantId(merchant.id)
     setScreen('merchant')
   }
 
@@ -23,29 +27,27 @@ export default function App() {
   }
 
   function openCreateForm() {
-    setEditingMerchant(null)
+    setEditingMerchantId(null)
     setScreen('form')
   }
 
   function openEditForm(merchant) {
-    setEditingMerchant(merchant)
+    setEditingMerchantId(merchant.id)
     setScreen('form')
   }
 
-  function saveMerchant(data) {
-    if (editingMerchant) {
-      const updated = { ...data, id: editingMerchant.id }
-      setMerchants(prev => prev.map(m => m.id === editingMerchant.id ? updated : m))
-      setSelectedMerchant(updated)
+  function handleSave(data) {
+    const id = store.saveMerchant(data, editingMerchantId)
+    if (editingMerchantId) {
       setScreen('merchant')
     } else {
-      setMerchants(prev => [...prev, { ...data, id: Date.now() }])
+      setSelectedMerchantId(id)
       setScreen('list')
     }
   }
 
-  function deleteMerchant(id) {
-    setMerchants(prev => prev.filter(m => m.id !== id))
+  function handleDelete(id) {
+    store.deleteMerchant(id)
     setScreen('list')
   }
 
@@ -53,18 +55,22 @@ export default function App() {
     <div className="app">
       {screen === 'list' && (
         <MerchantList
-          merchants={merchants}
+          merchants={store.merchants}
+          groups={store.groups}
           onSelect={openMerchant}
           onCreate={openCreateForm}
           onEdit={openEditForm}
+          onCreateGroup={store.createGroup}
+          onRenameGroup={store.renameGroup}
+          onDeleteGroup={store.deleteGroup}
         />
       )}
       {screen === 'merchant' && selectedMerchant && (
         <MerchantView
-          merchant={merchants.find(m => m.id === selectedMerchant.id) || selectedMerchant}
+          merchant={selectedMerchant}
           onBack={() => setScreen('list')}
           onItemClick={openItem}
-          onEdit={() => openEditForm(merchants.find(m => m.id === selectedMerchant.id) || selectedMerchant)}
+          onEdit={() => openEditForm(selectedMerchant)}
         />
       )}
       {screen === 'item' && selectedItem && (
@@ -76,9 +82,10 @@ export default function App() {
       {screen === 'form' && (
         <MerchantForm
           merchant={editingMerchant}
-          onSave={saveMerchant}
-          onDelete={editingMerchant ? () => deleteMerchant(editingMerchant.id) : null}
-          onCancel={() => setScreen(editingMerchant ? 'merchant' : 'list')}
+          groups={store.groups}
+          onSave={handleSave}
+          onDelete={editingMerchantId ? () => handleDelete(editingMerchantId) : null}
+          onCancel={() => setScreen(editingMerchantId ? 'merchant' : 'list')}
         />
       )}
     </div>

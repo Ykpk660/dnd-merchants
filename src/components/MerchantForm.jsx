@@ -4,10 +4,11 @@ function emptyItem() {
   return { id: Date.now() + Math.random(), name: '', type: '', description: '', price: '' }
 }
 
-export default function MerchantForm({ merchant, onSave, onDelete, onCancel }) {
+export default function MerchantForm({ merchant, groups, onSave, onDelete, onCancel }) {
   const [name, setName] = useState(merchant?.name || '')
   const [race, setRace] = useState(merchant?.race || '')
   const [photo, setPhoto] = useState(merchant?.photo || null)
+  const [groupId, setGroupId] = useState(merchant?.groupId || '')
   const [items, setItems] = useState(merchant?.items?.map(i => ({ ...i })) || [])
   const fileRef = useRef()
 
@@ -33,7 +34,13 @@ export default function MerchantForm({ merchant, onSave, onDelete, onCancel }) {
 
   function handleSave() {
     if (!name.trim()) return alert('Введите имя торговца')
-    onSave({ name: name.trim(), race: race.trim(), photo, items })
+    onSave({
+      name: name.trim(),
+      race: race.trim(),
+      photo,
+      groupId: groupId || null,
+      items
+    })
   }
 
   return (
@@ -59,15 +66,25 @@ export default function MerchantForm({ merchant, onSave, onDelete, onCancel }) {
         <input value={race} onChange={e => setRace(e.target.value)} placeholder="Человек, эльф..." />
       </div>
 
+      {groups.length > 0 && (
+        <div className="form-group">
+          <label>Группа</label>
+          <select value={groupId} onChange={e => setGroupId(e.target.value)}>
+            <option value="">— Без группы —</option>
+            {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </div>
+      )}
+
       <div className="form-group">
         <label>Фото</label>
         <div className="photo-row">
           {photo
             ? <img src={photo} alt="preview" className="photo-preview" />
-            : <div className="photo-preview placeholder">?</div>
+            : <div className="photo-preview placeholder">{name?.[0] || '?'}</div>
           }
           <button className="btn-secondary" onClick={() => fileRef.current.click()}>
-            {photo ? 'Сменить фото' : 'Загрузить фото'}
+            {photo ? 'Сменить' : 'Загрузить фото'}
           </button>
           {photo && <button className="btn-secondary" onClick={() => setPhoto(null)}>Убрать</button>}
         </div>
@@ -77,29 +94,32 @@ export default function MerchantForm({ merchant, onSave, onDelete, onCancel }) {
       <div className="form-section">
         <div className="form-section-header">
           <h3>Товары</h3>
-          <button className="btn-secondary" onClick={addItem}>+ Добавить товар</button>
+          <button className="btn-secondary small" onClick={addItem}>+ Товар</button>
         </div>
 
-        {items.length === 0 && <p className="empty-hint">Товаров нет</p>}
+        {items.length === 0 && <p className="empty-hint small">Товаров нет</p>}
 
-        {items.map(item => (
+        {items.map((item, idx) => (
           <div key={item.id} className="item-form-row">
+            <div className="item-form-index">#{idx + 1}</div>
             <div className="item-form-fields">
               <input
-                placeholder="Название"
+                placeholder="Название товара"
                 value={item.name}
                 onChange={e => updateItem(item.id, 'name', e.target.value)}
               />
-              <input
-                placeholder="Тип (меч, зелье...)"
-                value={item.type}
-                onChange={e => updateItem(item.id, 'type', e.target.value)}
-              />
-              <input
-                placeholder="Цена (100 зм)"
-                value={item.price}
-                onChange={e => updateItem(item.id, 'price', e.target.value)}
-              />
+              <div className="item-form-row2">
+                <input
+                  placeholder="Тип (меч, зелье...)"
+                  value={item.type}
+                  onChange={e => updateItem(item.id, 'type', e.target.value)}
+                />
+                <input
+                  placeholder="Цена (100 зм)"
+                  value={item.price}
+                  onChange={e => updateItem(item.id, 'price', e.target.value)}
+                />
+              </div>
               <textarea
                 placeholder="Описание"
                 value={item.description}
